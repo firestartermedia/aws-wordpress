@@ -1,0 +1,7 @@
+SetEnvIf X-Forwarded-For "(,| |^)77\.98\.191\.19(,| |$)" env_allow_1
+SetEnvIf X-Access-Key (SECRETKEY) cdn
+
+Order allow,deny
+Allow from env=env_allow_1
+Deny from env=cdn
+

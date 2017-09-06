@@ -1,0 +1,23 @@
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.php$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.php [L]
+</IfModule>
+
+# END WordPress
+
+SetEnvIf X-Forwarded-For "(,| |^)77\.98\.191\.19(,| |$)" env_allow_1
+SetEnvIf X-Access-Key (SECRETKEY) cdn
+
+<Files wp-login.php>
+  Order allow,deny
+  Allow from env=env_allow_1
+  Deny from env=cdn
+</Files>
+
+Order allow,deny
+Allow from env=cdn
