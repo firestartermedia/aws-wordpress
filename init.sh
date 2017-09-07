@@ -57,7 +57,7 @@ function create_cloud_formation {
   aws s3 cp wordpress.zip s3://$2/ > /dev/null 2>&1
   rm -f wordpress.zip
 
-  aws cloudformation create-stack --template-body file://formation.yaml --stack-name wordpress-$(date "+%Y-%m-%d-%H-%M-%S") --parameters ParameterKey=wordpressDBName,ParameterValue=wordpress ParameterKey=wordpressDBUser,ParameterValue=wordpress ParameterKey=AccessKey,ParameterValue=$4 ParameterKey=wordpressDBPass,ParameterValue=$1 ParameterKey=S3CodeStorageBucketName,ParameterValue=$2 ParameterKey=S3BucketName,ParameterValue=$5 ParameterKey=URL,ParameterValue=$6 > /dev/null 2>&1
+  aws cloudformation create-stack --template-body file://templates/formation.yaml --stack-name wordpress-$(date "+%Y-%m-%d-%H-%M-%S") --parameters ParameterKey=wordpressDBName,ParameterValue=wordpress ParameterKey=wordpressDBUser,ParameterValue=wordpress ParameterKey=AccessKey,ParameterValue=$4 ParameterKey=wordpressDBPass,ParameterValue=$1 ParameterKey=S3CodeStorageBucketName,ParameterValue=$2 ParameterKey=S3BucketName,ParameterValue=$5 ParameterKey=URL,ParameterValue=$6 > /dev/null 2>&1
 }
 
 
