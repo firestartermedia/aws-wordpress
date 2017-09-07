@@ -43,7 +43,13 @@ Parameters:
     Type: String
     MinLength: '1'
     MaxLength: '128'
-  URL:
+  WPHome:
+    NoEcho: 'true'
+    Description: URL
+    Type: String
+    MinLength: '1'
+    MaxLength: '128'
+  CNAME:
     NoEcho: 'true'
     Description: URL
     Type: String
@@ -114,8 +120,6 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
-        Aliases:
-          - Ref: URL
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
@@ -182,7 +186,7 @@ Resources:
       - Namespace: aws:elasticbeanstalk:application:environment
         OptionName: WP_HOME
         Value:
-          Ref: URL
+          Ref: WPHome
       - Namespace: aws:elasticbeanstalk:environment
         OptionName: ServiceRole
         Value: arn:aws:iam::760151783499:role/aws-elasticbeanstalk-service-role

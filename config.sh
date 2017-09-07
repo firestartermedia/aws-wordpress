@@ -1,6 +1,10 @@
 
 # Site Configuration
-siteURL="www.test.com"
+WPHome="https://www.test.com/"
+CNAME="www.test.com"
+
+# Admin Configuration
+AdminIP="77.98.191.19"
 
 # AWS Config
 stackName=wordpress-$(date "+%Y-%m-%d-%H-%M-%S")

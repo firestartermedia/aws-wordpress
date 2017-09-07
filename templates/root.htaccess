@@ -10,7 +10,7 @@
 
 # END WordPress
 
-SetEnvIf X-Forwarded-For "(,| |^)77\.98\.191\.19(,| |$)" env_allow_1
+SetEnvIf X-Forwarded-For "(,| |^)ADMINIP(,| |$)" env_allow_1
 SetEnvIf X-Access-Key (SECRETKEY) cdn
 
 <Files wp-login.php>
