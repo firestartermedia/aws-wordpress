@@ -49,6 +49,16 @@ Parameters:
     Type: String
     MinLength: '1'
     MaxLength: '128'
+  AllocatedStorage:
+    NoEcho: 'true'
+    Description: RDS SQL Allocated Storage Space
+    Type: Number
+  DBInstanceClass:
+    NoEcho: 'true'
+    Description: EC2 Instance Class
+    Type: String
+    MinLength: '1'
+    MaxLength: '128'
 
 Resources:
   wordpressEnv:
@@ -89,8 +99,10 @@ Resources:
     Properties:
       DBName:
         Ref: wordpressDBName
-      AllocatedStorage: 5
-      DBInstanceClass: db.t2.micro
+      AllocatedStorage:
+        Ref: AllocatedStorage
+      DBInstanceClass:
+        Ref: DBInstanceClass
       Engine: MySQL
       MasterUsername:
         Ref: wordpressDBUser
@@ -103,7 +115,7 @@ Resources:
       DistributionConfig:
         Enabled: true
         Aliases:
-          Ref: URL
+          - Ref: URL
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
