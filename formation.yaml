@@ -37,6 +37,18 @@ Parameters:
     Type: String
     MinLength: '1'
     MaxLength: '41'
+  AccessKey:
+    NoEcho: 'true'
+    Description: Secret Access Key
+    Type: String
+    MinLength: '1'
+    MaxLength: '128'
+  URL:
+    NoEcho: 'true'
+    Description: URL
+    Type: String
+    MinLength: '1'
+    MaxLength: '128'
 
 Resources:
   wordpressEnv:
@@ -90,23 +102,32 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
+        Aliases:
+          Ref: URL
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: true
-          TargetOriginId:
-            Ref: wordpressEnvBucket
+            Headers:
+              - Host
+              - CloudFront-Forwarded-Proto
+          TargetOriginId: beanstalk
           ViewerProtocolPolicy: allow-all
         Origins:
         - DomainName:
             Fn::GetAtt:
-              - wordpressEnvBucket
-              - DomainName
-          Id:
-            Ref: wordpressEnvBucket
+              - wordpressEnvEnvironment
+              - EndpointURL
+          Id: beanstalk
           CustomOriginConfig:
             HTTPPort: 80
             HTTPSPort: 443
-            OriginProtocolPolicy: https-only
+            OriginProtocolPolicy: http-only
+          OriginCustomHeaders:
+            - HeaderName: X-Access-Key
+              HeaderValue:
+                Ref: AccessKey
+
+
 
   wordpressEnvConfigurationTemplate:
     Type: AWS::ElasticBeanstalk::ConfigurationTemplate
@@ -146,6 +167,10 @@ Resources:
         OptionName: S3_BUCKET
         Value:
           Ref: S3BucketName
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: WP_HOME
+        Value:
+          Ref: URL
       - Namespace: aws:elasticbeanstalk:environment
         OptionName: ServiceRole
         Value: arn:aws:iam::760151783499:role/aws-elasticbeanstalk-service-role
