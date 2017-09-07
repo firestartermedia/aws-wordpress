@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  wordpressDBName:
+    Description: The WordPress database name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+  wordpressDBUser:
+    NoEcho: 'true'
+    Description: The WordPress database admin account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+  wordpressDBPass:
+    NoEcho: 'true'
+    Description: The WordPress database admin account password
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+    AllowedPattern: "[a-zA-Z0-9]*"
+    ConstraintDescription: must contain only alphanumeric characters.
+  S3BucketName:
+    NoEcho: 'true'
+    Description: Wordpress storage bucket name
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+  S3CodeStorageBucketName:
+    NoEcho: 'true'
+    Description: Wordpress code storage bucket name
+    Type: String
+    MinLength: '1'
+    MaxLength: '41'
+
+Resources:
+  wordpressEnv:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      Description: WordPress AWS Elastic Beanstalk
+
+  wordpressEnvVersion:
+    Type: AWS::ElasticBeanstalk::ApplicationVersion
+    Properties:
+      ApplicationName:
+        Ref: wordpressEnv
+      Description: WordPress AWS Elastic Beanstalk Version
+      SourceBundle:
+        S3Bucket:
+          Ref: S3CodeStorageBucketName
+        S3Key: wordpress.zip
+
+  wordpressEnvBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: S3BucketName
+
+  wordpressEnvEnvironment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties:
+      ApplicationName:
+        Ref: wordpressEnv
+      Description: WordPress AWS Elastic Beanstalk Environment
+      TemplateName:
+        Ref: wordpressEnvConfigurationTemplate
+      VersionLabel:
+        Ref: wordpressEnvVersion
+
+  wordpressEnvDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName:
+        Ref: wordpressDBName
+      AllocatedStorage: 5
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      MasterUsername:
+        Ref: wordpressDBUser
+      MasterUserPassword:
+        Ref: wordpressDBPass
+
+  wordPressEnvCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: true
+          TargetOriginId:
+            Ref: wordpressEnvBucket
+          ViewerProtocolPolicy: allow-all
+        Origins:
+        - DomainName:
+            Fn::GetAtt:
+              - wordpressEnvBucket
+              - DomainName
+          Id:
+            Ref: wordpressEnvBucket
+          CustomOriginConfig:
+            HTTPPort: 80
+            HTTPSPort: 443
+            OriginProtocolPolicy: https-only
+
+  wordpressEnvConfigurationTemplate:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties:
+      ApplicationName:
+        Ref: wordpressEnv
+      Description: WordPress AWS Elastic Beanstalk Configuration Template
+      OptionSettings:
+      - Namespace: aws:autoscaling:asg
+        OptionName: MinSize
+        Value: 1
+      - Namespace: aws:autoscaling:asg
+        OptionName: MaxSize
+        Value: 6
+      - Namespace: aws:elasticbeanstalk:environment
+        OptionName: EnvironmentType
+        Value: LoadBalanced
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: RDS_DB_NAME
+        Value:
+          Ref: wordpressDBName
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: RDS_DB_USER
+        Value:
+          Ref: wordpressDBUser
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: RDS_DB_PASSWORD
+        Value:
+          Ref: wordpressDBPass
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: RDS_DB_HOST
+        Value:
+          Fn::GetAtt:
+            - wordpressEnvDB
+            - Endpoint.Address
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: S3_BUCKET
+        Value:
+          Ref: S3BucketName
+      - Namespace: aws:elasticbeanstalk:environment
+        OptionName: ServiceRole
+        Value: arn:aws:iam::760151783499:role/aws-elasticbeanstalk-service-role
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: IamInstanceProfile
+        Value: arn:aws:iam::760151783499:instance-profile/aws-elasticbeanstalk-ec2-role
+
+      SolutionStackName: 64bit Amazon Linux 2017.03 v2.4.4 running PHP 7.0
