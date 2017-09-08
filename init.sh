@@ -30,8 +30,8 @@ function install_wordpress_plugins {
 }
 
 function edit_wp_config {
-  configText=$(printf "define('WP_HOME',$_SERVER['WP_HOME']);\ndefine('WP_SITEURL', $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER[‘HTTP_HOST']);
-")
+  configText=$(printf "define('WP_HOME',$_SERVER['WP_HOME']);\ndefine('WP_SITEURL', $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER[‘HTTP_HOST']);\n")
+
   sed -i ".bak" "s/'database_name_here'/\$_SERVER['RDS_DB_NAME']/g" wordpress/wp-config-sample.php
   sed -i ".bak" "s/'username_here'/\$_SERVER['RDS_DB_USER']/g" wordpress/wp-config-sample.php
   sed -i ".bak" "s/'password_here'/\$_SERVER['RDS_DB_PASSWORD']/g" wordpress/wp-config-sample.php
